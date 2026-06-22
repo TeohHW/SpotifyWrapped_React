@@ -32,10 +32,13 @@ The app requests:
 - `user-library-read`
 - `user-read-playback-state`
 
-# Do take not that there is a limit to Spotify's API usage, after a certain limit user will be restricted from making API calls
-Recommended for user to just wait until the usage resets. \
-Refer to https://developer.spotify.com/documentation/web-api/concepts/rate-limits for more information.
-## Note
+> [!NOTE]
+> Do take not that there is a limit to Spotify's API usage, after a certain limit user will be restricted from making API calls \
+> \
+> Recommended for user to just wait until the usage resets. \
+Refer to https://developer.spotify.com/documentation/web-api/concepts/rate-limits for more information. 
+
+## About
 Personal project, not intended for commercial use — just something I wanted to build to study React. AI coding tools such as Codex were used during development.
 #
 All assets used belong to their respective owners.
