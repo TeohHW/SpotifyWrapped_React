@@ -146,6 +146,12 @@ const spotifyFetch = async (path, token, searchParams) => {
     throw new Error('Spotify session expired. Please sign in again.');
   }
 
+  if (response.status === 429) {
+    const retryAfter = response.headers.get('Retry-After');
+    const waitText = retryAfter ? ` Try again in about ${retryAfter} seconds.` : ' Please wait a moment and try again.';
+    throw new Error(`Spotify rate limit reached.${waitText}`);
+  }
+
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error?.message || `Spotify request failed: ${response.status}`);

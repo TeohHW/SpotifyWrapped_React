@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Disc3,
   ExternalLink,
@@ -85,6 +85,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const hasLoadedBaseDataRef = useRef(false);
+  const activeLoadKeyRef = useRef('');
 
   useEffect(() => {
     let cancelled = false;
@@ -126,50 +128,68 @@ function App() {
   const loadData = useCallback(async () => {
     if (!token) return;
 
+    const loadKey = `${activeTerm}:${rankLimit}`;
+    if (activeLoadKeyRef.current === loadKey) return;
+    activeLoadKeyRef.current = loadKey;
     setIsLoading(true);
     setError('');
 
     try {
-      const topRequests = terms.flatMap((term) => [
-        getTopTracks(token, term, rankLimit),
-        getTopArtists(token, term, rankLimit),
-      ]);
-      const [user, recent, savedTracksPage, savedAlbumsPage, ...topResults] = await Promise.all([
-        getCurrentUser(token),
-        getRecentlyPlayed(token),
-        getSavedTracksPage(token),
-        getSavedAlbumsPage(token),
-        ...topRequests,
+      const [topTracksForTerm, topArtistsForTerm] = await Promise.all([
+        getTopTracks(token, activeTerm, rankLimit),
+        getTopArtists(token, activeTerm, rankLimit),
       ]);
 
-      const topTracks = {};
-      const topArtists = {};
-      terms.forEach((term, index) => {
-        topTracks[term] = topResults[index * 2];
-        topArtists[term] = topResults[index * 2 + 1];
-      });
+      if (!hasLoadedBaseDataRef.current) {
+        const [user, recent, savedTracksPage, savedAlbumsPage] = await Promise.all([
+          getCurrentUser(token),
+          getRecentlyPlayed(token),
+          getSavedTracksPage(token),
+          getSavedAlbumsPage(token),
+        ]);
 
-      setData((current) => ({
-        ...current,
-        user,
-        recent,
-        savedTracks: savedTracksPage.items ?? [],
-        savedAlbums: savedAlbumsPage.items ?? [],
-        libraryTotals: {
-          tracks: savedTracksPage.total ?? 0,
-          albums: savedAlbumsPage.total ?? 0,
-        },
-        topTracks,
-        topArtists,
-      }));
+        hasLoadedBaseDataRef.current = true;
+        setData((current) => ({
+          ...current,
+          user,
+          recent,
+          savedTracks: savedTracksPage.items ?? [],
+          savedAlbums: savedAlbumsPage.items ?? [],
+          libraryTotals: {
+            tracks: savedTracksPage.total ?? 0,
+            albums: savedAlbumsPage.total ?? 0,
+          },
+          topTracks: {
+            ...current.topTracks,
+            [activeTerm]: topTracksForTerm,
+          },
+          topArtists: {
+            ...current.topArtists,
+            [activeTerm]: topArtistsForTerm,
+          },
+        }));
+      } else {
+        setData((current) => ({
+          ...current,
+          topTracks: {
+            ...current.topTracks,
+            [activeTerm]: topTracksForTerm,
+          },
+          topArtists: {
+            ...current.topArtists,
+            [activeTerm]: topArtistsForTerm,
+          },
+        }));
+      }
 
       await loadPlaybackData();
     } catch (err) {
       setError(err.message);
     } finally {
+      activeLoadKeyRef.current = '';
       setIsLoading(false);
     }
-  }, [loadPlaybackData, rankLimit, token]);
+  }, [activeTerm, loadPlaybackData, rankLimit, token]);
 
   useEffect(() => {
     loadData();
@@ -180,7 +200,7 @@ function App() {
 
     const interval = window.setInterval(() => {
       loadPlaybackData();
-    }, 5000);
+    }, 15000);
 
     return () => window.clearInterval(interval);
   }, [loadPlaybackData, token]);
