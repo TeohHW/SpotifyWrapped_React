@@ -34,7 +34,8 @@ The app requests:
 
 ## Note
 Personal project, not intended for commercial use — just something I wanted to build to study React. AI coding tools such as Codex were used during development.
-
+Do take not that there is a limit to Spotify's API calls, after a certain limit Spotify will temporarily restrict the usage.
+Recommended for user to just wait until the usage resets. Do refer to their webpage for more information.
 #
 All assets used belong to their respective owners.
 
