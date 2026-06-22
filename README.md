@@ -31,3 +31,10 @@ The app requests:
 - `user-read-recently-played`
 - `user-library-read`
 - `user-read-playback-state`
+
+## Note
+Personal project, not intended for commercial use — just something I wanted to build to study React. AI coding tools such as Codex were used during development.
+
+#
+All assets used belong to their respective owners.
+
