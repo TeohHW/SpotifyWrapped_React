@@ -74,6 +74,7 @@ function App() {
   const [activePage, setActivePage] = useState('top-tracks');
   const [isBooting, setIsBooting] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlaybackLoading, setIsPlaybackLoading] = useState(false);
   const [error, setError] = useState('');
   const [isPlaybackMinimized, setIsPlaybackMinimized] = useState(false);
   const [listOverlay, setListOverlay] = useState(null);
@@ -108,21 +109,29 @@ function App() {
     };
   }, []);
 
+  // Playback/device state now only fetches on demand (initial load + manual refresh button)
+  // instead of polling automatically every few seconds. This avoids unnecessary Spotify API
+  // calls that contributed to hitting rate limits.
   const loadPlaybackData = useCallback(async () => {
     if (!token) return;
 
-    const [playbackResult, devicesResult, queueResult] = await Promise.allSettled([
-      getPlaybackState(token),
-      getAvailableDevices(token),
-      getUserQueue(token),
-    ]);
+    setIsPlaybackLoading(true);
+    try {
+      const [playbackResult, devicesResult, queueResult] = await Promise.allSettled([
+        getPlaybackState(token),
+        getAvailableDevices(token),
+        getUserQueue(token),
+      ]);
 
-    setData((current) => ({
-      ...current,
-      playback: playbackResult.status === 'fulfilled' ? playbackResult.value : current.playback,
-      devices: devicesResult.status === 'fulfilled' ? devicesResult.value?.devices ?? [] : current.devices,
-      queue: queueResult.status === 'fulfilled' ? queueResult.value ?? emptyData.queue : current.queue,
-    }));
+      setData((current) => ({
+        ...current,
+        playback: playbackResult.status === 'fulfilled' ? playbackResult.value : current.playback,
+        devices: devicesResult.status === 'fulfilled' ? devicesResult.value?.devices ?? [] : current.devices,
+        queue: queueResult.status === 'fulfilled' ? queueResult.value ?? emptyData.queue : current.queue,
+      }));
+    } finally {
+      setIsPlaybackLoading(false);
+    }
   }, [token]);
 
   const loadData = useCallback(async () => {
@@ -168,6 +177,9 @@ function App() {
             [activeTerm]: topArtistsForTerm,
           },
         }));
+
+        // Fetch playback/devices once on initial load only.
+        await loadPlaybackData();
       } else {
         setData((current) => ({
           ...current,
@@ -181,8 +193,6 @@ function App() {
           },
         }));
       }
-
-      await loadPlaybackData();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -195,15 +205,8 @@ function App() {
     loadData();
   }, [loadData]);
 
-  useEffect(() => {
-    if (!token) return undefined;
-
-    const interval = window.setInterval(() => {
-      loadPlaybackData();
-    }, 15000);
-
-    return () => window.clearInterval(interval);
-  }, [loadPlaybackData, token]);
+  // NOTE: automatic polling interval removed. Playback/device state now only refreshes
+  // on initial load or when the user clicks the manual refresh button in the overlay.
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -282,7 +285,9 @@ function App() {
         devices={data.devices}
         queue={data.queue}
         isMinimized={isPlaybackMinimized}
+        isLoading={isPlaybackLoading}
         onToggleMinimize={() => setIsPlaybackMinimized((value) => !value)}
+        onRefresh={loadPlaybackData}
         onOpenRecent={() => setListOverlay('recent')}
         onOpenQueue={() => setListOverlay('queue')}
       />
@@ -487,7 +492,9 @@ function PlaybackDeviceOverlay({
   devices,
   queue,
   isMinimized,
+  isLoading,
   onToggleMinimize,
+  onRefresh,
   onOpenRecent,
   onOpenQueue,
 }) {
@@ -502,9 +509,21 @@ function PlaybackDeviceOverlay({
           <Radio size={16} />
           Playback & Devices
         </span>
-        <button className="icon-button icon-button--small" type="button" onClick={onToggleMinimize} aria-label="Minimize playback overlay">
-          {isMinimized ? <Maximize2 size={15} /> : <Minimize2 size={15} />}
-        </button>
+        <div className="playback-overlay__header-actions">
+          <button
+            className="icon-button icon-button--small"
+            type="button"
+            onClick={onRefresh}
+            aria-label="Refresh playback state"
+            title="Refresh playback state"
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="spin" size={14} /> : <RefreshCw size={14} />}
+          </button>
+          <button className="icon-button icon-button--small" type="button" onClick={onToggleMinimize} aria-label="Minimize playback overlay">
+            {isMinimized ? <Maximize2 size={15} /> : <Minimize2 size={15} />}
+          </button>
+        </div>
       </header>
       {!isMinimized && (
         <>

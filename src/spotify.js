@@ -112,7 +112,9 @@ export const handleCallback = async () => {
   });
 
   if (!response.ok) {
-    throw new Error('Could not exchange Spotify authorization code.');
+    const errorBody = await response.json().catch(() => ({}));
+    const description = errorBody.error_description || errorBody.error || 'Unknown error';
+    throw new Error(`Could not exchange Spotify authorization code: ${description}`);
   }
 
   const token = await response.json();
@@ -147,9 +149,8 @@ const spotifyFetch = async (path, token, searchParams) => {
   }
 
   if (response.status === 429) {
-    const retryAfter = response.headers.get('Retry-After');
-    const waitText = retryAfter ? ` Try again in about ${retryAfter} seconds.` : ' Please wait a moment and try again.';
-    throw new Error(`Spotify rate limit reached.${waitText}`);
+    const retryAfter = response.headers.get('Retry-After') || '30';
+    throw new Error(`Spotify rate limit hit. Please wait ${retryAfter}s before trying again.`);
   }
 
   if (!response.ok) {
