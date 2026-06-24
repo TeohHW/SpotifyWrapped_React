@@ -2,12 +2,18 @@
 
 A React + Vite dashboard that uses Spotify's Web API to show personal listening summaries:
 
-- Top tracks and artists for short, medium, and long term windows
+- Top tracks and artists for short, medium, and long term windows - 4 weeks, 6 months, 12 months
 - Ranked top 10, 25, or 50 lists where Spotify returns enough results
 - Currently playing track, playback state, devices, upcoming queue, and Spotify search
 - Recently played tracks
 - Saved library tracks and albums
 - Track and album metadata
+
+## Demo screenshots
+<img width="960" height="520" alt="MainPage" src="https://github.com/user-attachments/assets/5a428315-9caf-4ebf-bee9-108574c3c1fa" />
+<img width="445" height="352" alt="Queue" src="https://github.com/user-attachments/assets/0b7c8e44-d41c-471d-bb39-f715347c06cf" />
+<img width="445" height="352" alt="RecentlyPlayed" src="https://github.com/user-attachments/assets/56fff252-afdc-4cc8-8066-82925d4aac9b" />
+<img width="480" height="320" alt="SongInfo" src="https://github.com/user-attachments/assets/f9584d8f-e4f5-4b68-8570-3cfc27234f50" />
 
 ## Setup
 
