@@ -1,6 +1,8 @@
 # Spotify Wrapped React
 
-A React + Vite dashboard that uses Spotify's Web API to show personal listening summaries:
+A React + Vite dashboard built on Spotify's Web API to surface personal
+listening insights — built to explore OAuth flows and real-time API
+integration
 
 - Top tracks and artists for short, medium, and long term windows - 4 weeks, 6 months, 12 months
 - Ranked top 10, 25, or 50 lists where Spotify returns enough results
@@ -37,15 +39,12 @@ The app requests:
 - `user-read-recently-played`
 - `user-library-read`
 - `user-read-playback-state`
-
-> [!NOTE]
-> Do take not that there is a limit to Spotify's API usage, after a certain limit user will be restricted from making API calls \
-> \
-> Recommended for user to just wait until the usage resets. \
-Refer to https://developer.spotify.com/documentation/web-api/concepts/rate-limits for more information. 
+#
+> **Note:** Spotify's API enforces rate limits. If you hit the limit during testing, wait for it to reset rather than retrying immediately. See [Spotify's rate limit docs](https://developer.spotify.com/documentation/web-api/concepts/rate-limits).
 
 ## About
-Personal project, not intended for commercial use — just something I wanted to build to study React. AI coding tools such as Codex were used during development.
-#
-All assets used belong to their respective owners.
+
+A personal project built to learn React and practice working with a
+third-party OAuth API. AI coding tools (e.g. Codex) were used during
+development. All Spotify branding and data belong to their respective owners.
 
